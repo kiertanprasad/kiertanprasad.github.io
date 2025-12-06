@@ -1,7 +1,13 @@
-**Hi class, welcome to the AOS C111/204 final project!** <img align="right" width="220" height="220" src="/assets/IMG/template_logo.png">
+ # **Modeling Daily AQI Using Pollutant Data Across U.S.** 
 
-For this project, you will be applying your skills to train a machine learning model using real-world data, then publishing a report on your own website.
+### Hi! My name is Kiertan and here is my project on AQI and Pollutants!
 
+### Dataset 
+[AQI Dataset](https://aqs.epa.gov/aqsweb/airdata/download_files.html#AQI)
+##### The files I downloaded were: daily_42101_2022, daily_88101_2022, daily_42401_2022, daily_42602_2022, daily_44201_2022, daily_aqi_by_county_2022
+
+### Report
+[AQI and Pollutant Report]
 * To get data for your project, you could:
   * use **your own data** from a separate research activity
   * **scour the internet** to find something original, then preprocess it yourself - see the Module Overview on BruinLearn for some resources
