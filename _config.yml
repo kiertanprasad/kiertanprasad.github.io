@@ -2,3 +2,4 @@ title: Kiertan Prasad
 description: Hi! Here is my project on AQI and Pollutants:)
 show_downloads: true
 theme: jekyll-theme-slate
+markdown: kramdown
