@@ -7,7 +7,7 @@
 ##### The files I downloaded were: daily_42101_2022, daily_88101_2022, daily_42401_2022, daily_42602_2022, daily_44201_2022, daily_aqi_by_county_2022
 
 ### Report
-[AQI and Pollutant Report]
+[AQI and Pollutant Report](/assets/C111%20Final%20Project.pdf)
 * To get data for your project, you could:
   * use **your own data** from a separate research activity
   * **scour the internet** to find something original, then preprocess it yourself - see the Module Overview on BruinLearn for some resources
