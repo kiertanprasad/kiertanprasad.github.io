@@ -7,7 +7,7 @@
 
 [EPA Dataset](https://aqs.epa.gov/aqsweb/airdata/download_files.html#AQI)
 
-[ML Modeling Report.pdf](https://github.com/user-attachments/files/27183327/AQI.Modeling.Report)
+[ML Modeling Report.pdf](https://github.com/user-attachments/files/27183327/AQI.Modeling.Report.pdf)
 
 [Code Notebook](https://colab.research.google.com/drive/18sLEZRwGTKk27vco2APBarn797Lpes0-?usp=sharing)
 
