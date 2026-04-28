@@ -1,0 +1,207 @@
+files = dir(fullfile(folder,'*.SST.nc'));
+
+lat_min = 30;
+lat_max = 45;
+lon_min = -75;
+lon_max = -45;
+
+all_sst = [];
+all_lat = [];
+all_lon = [];
+
+for i = 1:length(files)
+
+    filename = fullfile(folder,files(i).name);
+
+    lat  = double(ncread(filename,'/navigation_data/latitude'));
+    lon  = double(ncread(filename,'/navigation_data/longitude'));
+    sst  = double(ncread(filename,'/geophysical_data/sst'));
+    qual = double(ncread(filename,'/geophysical_data/qual_sst'));
+
+    lat(lat == -999) = NaN;
+    lon(lon == -999) = NaN;
+
+   sst(sst < -2 | sst > 45) = NaN;
+
+    lon(lon > 180) = lon(lon > 180) - 360;
+
+    % Region + QC + finite values
+    region = lat >= lat_min & lat <= lat_max & ...
+             lon >= lon_min & lon <= lon_max;
+
+    good_qc = qual <= 1;
+
+    valid = region & good_qc & isfinite(sst) & isfinite(lat) & isfinite(lon);
+
+    if any(valid(:))
+        all_sst = [all_sst; sst(valid)];
+        all_lat = [all_lat; lat(valid)];
+        all_lon = [all_lon; lon(valid)];
+    end
+end
+
+fprintf('MODIS pixels kept: %d\n', numel(all_sst));
+fprintf('SST range: %.2f to %.2f C\n', min(all_sst), max(all_sst));
+MODIS pixels kept: 2111555
+SST range: 9.34 to 36.29 C
+>> 
+argo_files = dir(fullfile(argo_folder, '*_Sprof.nc'));
+
+argo_lat_all = [];
+argo_lon_all = [];
+argo_sst_all = [];
+argo_time_all = [];
+argo_wmo_all = strings(0,1);
+
+target_date = datenum('2024-07-15');
+max_day_diff = 7;   
+
+for i = 1:length(argo_files)
+    file = fullfile(argo_folder, argo_files(i).name);
+
+    try
+        lat  = double(ncread(file, 'LATITUDE'));
+        lon  = double(ncread(file, 'LONGITUDE'));
+        juld = double(ncread(file, 'JULD'));
+
+        pres = double(ncread(file, 'PRES_ADJUSTED'));
+        temp = double(ncread(file, 'TEMP_ADJUSTED'));
+        temp_qc = ncread(file, 'TEMP_ADJUSTED_QC');
+
+    catch
+        fprintf('Skipping unreadable file: %s\n', argo_files(i).name);
+        continue
+    end
+
+    % fill values
+    lat(lat == 99999) = NaN;
+    lon(lon == 99999) = NaN;
+    juld(juld == 999999) = NaN;
+
+    pres(pres == 99999) = NaN;
+    temp(temp == 99999) = NaN;
+
+    lon(lon > 180) = lon(lon > 180) - 360;
+
+    % datenum
+    argo_datenum = datenum(1950,1,1) + juld;
+
+    nprof = length(lat);
+    sst_argo = nan(nprof,1);
+
+    for j = 1:nprof
+        pcol = pres(:,j);
+        tcol = temp(:,j);
+        qcol = temp_qc(:,j);
+
+        
+        good_qc = (qcol == '1') | (qcol == '2');
+
+        % shallowest good temp within top 10 dbar
+        shallow = pcol <= 10;
+
+        good = isfinite(pcol) & isfinite(tcol) & good_qc & shallow;
+
+        k = find(good, 1, 'first');
+
+        if ~isempty(k)
+            sst_argo(j) = tcol(k);
+        end
+    end
+
+    keep = isfinite(lat) & isfinite(lon) & isfinite(argo_datenum) & ...
+           isfinite(sst_argo) & ...
+           abs(argo_datenum - target_date) <= max_day_diff;
+
+    argo_lat_all  = [argo_lat_all; lat(keep)];
+    argo_lon_all  = [argo_lon_all; lon(keep)];
+    argo_sst_all  = [argo_sst_all; sst_argo(keep)];
+    argo_time_all = [argo_time_all; argo_datenum(keep)];
+
+    [~, name, ~] = fileparts(file);
+    wmo = extractBefore(string(name), "_Sprof");
+    argo_wmo_all = [argo_wmo_all; repmat(wmo, sum(keep), 1)];
+end
+
+fprintf('Argo profiles kept: %d\n', numel(argo_sst_all));
+Argo profiles kept: 15
+>> max_dist_km = 10;
+
+matched_argo = [];
+matched_modis = [];
+matched_dist = [];
+matched_wmo = strings(0,1);
+matched_lat = [];
+matched_lon = [];
+
+for i = 1:length(argo_sst_all)
+
+    ddeg = distance(argo_lat_all(i), argo_lon_all(i), all_lat, all_lon);
+    dkm = deg2km(ddeg);
+
+    [dmin, idx] = min(dkm);
+
+    if dmin <= max_dist_km
+        matched_argo(end+1,1) = argo_sst_all(i);
+        matched_modis(end+1,1) = all_sst(idx);
+        matched_dist(end+1,1) = dmin;
+        matched_wmo(end+1,1) = argo_wmo_all(i);
+
+        matched_lat(end+1,1) = argo_lat_all(i);
+        matched_lon(end+1,1) = argo_lon_all(i);
+    end
+
+end
+fprintf('Number of MODIS-Argo matchups: %d\n', numel(matched_argo));
+Number of MODIS-Argo matchups: 12
+>> 
+x = matched_argo;
+y = matched_modis;
+
+figure
+scatter(x,y,60,'filled')
+hold on
+
+% 1:1 line
+mn = floor(min([x;y]));
+mx = ceil(max([x;y]));
+plot([mn mx],[mn mx],'k--','LineWidth',1.5)
+
+% linear regression
+p = polyfit(x,y,1);
+xfit = linspace(mn,mx,50);
+yfit = polyval(p,xfit);
+plot(xfit,yfit,'r','LineWidth',2)
+
+xlabel('Argo SST (°C)')
+ylabel('MODIS SST (°C)')
+xlim([23 29])
+ylim([23 29])
+title('MODIS vs Argo SST Matchups')
+
+legend('Matchups','1:1 line','Linear regression','Location','best')
+
+grid on
+>> x = matched_argo;
+y = matched_modis;
+yerr = matched_modis_unc;
+
+figure
+hold on
+
+errorbar(x, y, yerr, yerr, 'o', 'MarkerSize', 7, 'LineWidth', 1)
+
+mn = floor(min([x; y]));
+mx = ceil(max([x; y]));
+plot([mn mx], [mn mx], 'k--', 'LineWidth', 1.5)
+
+p = polyfit(x, y, 1);
+xfit = linspace(mn, mx, 50);
+yfit = polyval(p, xfit);
+plot(xfit, yfit, 'r', 'LineWidth', 2)
+
+xlabel('Argo SST (°C)')
+ylabel('MODIS SST (°C)')
+title('MODIS vs Argo SST Matchups')
+legend('Matchups with MODIS variability', '1:1 line', 'Linear regression', 'Location', 'best')
+grid on
