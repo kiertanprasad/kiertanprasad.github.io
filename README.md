@@ -7,7 +7,7 @@
 
 [EPA Dataset](https://aqs.epa.gov/aqsweb/airdata/download_files.html#AQI)
 
-[ML Modeling Report.pdf](https://github.com/user-attachments/files/27183327/AQI.Modeling.Report.pdf)
+[ML Modeling Report.pdf](https://github.com/user-attachments/files/27183327/AQI.Modeling.Report)
 
 [Code Notebook](https://colab.research.google.com/drive/18sLEZRwGTKk27vco2APBarn797Lpes0-?usp=sharing)
 
@@ -16,6 +16,6 @@
 
 [NASA EarthData](https://www.earthdata.nasa.gov/data/catalog?keyword=sea%20surface%20temperature)
 
-[Remote Sensing Report.pdf](https://github.com/user-attachments/files/27183327/AQI.Modeling.Report.pdf)
+[Remote Sensing Report.pdf](https://github.com/user-attachments/files/27183327/Remote Sensing Report)
 
 [MATLAB Script](https://colab.research.google.com/drive/18sLEZRwGTKk27vco2APBarn797Lpes0-?usp=sharing)
